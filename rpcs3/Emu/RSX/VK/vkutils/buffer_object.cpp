@@ -65,6 +65,12 @@ namespace vk
 		VkMemoryRequirements memory_reqs;
 		vkGetBufferMemoryRequirements(m_device, value, &memory_reqs);
 
+		if (!memory_reqs.size)
+		{
+			rsx_log.error("Buffer has a zero-sized memory requirement: size=0x%llx, usage=0x%x, flags=0x%x, pool=%d",
+				size, usage, flags, static_cast<s32>(allocation_pool));
+		}
+
 		memory_type_info allocation_type_info = memory_type.get(dev, access_flags, memory_reqs.memoryTypeBits);
 		if (!allocation_type_info)
 		{

@@ -3,9 +3,53 @@
 
 #include "Emu/RSX/Utils/algorithm.hpp"
 #include "Emu/system_config.h"
+#include "Utilities/stack_trace.h"
 
 namespace vk
 {
+	// Diagnostics: describe a failed allocation request before the renderer gives up on it
+	static void log_allocation_failure(mem_allocator_base* allocator, const memory_allocation_request& request, VkResult error_code)
+	{
+		if (!request.throw_on_fail)
+		{
+			rsx_log.warning("Nullable allocation failed: error=%d, size=0x%llx, alignment=0x%llx, pool=%d",
+				static_cast<s32>(error_code), request.size, request.alignment, static_cast<s32>(request.pool));
+			return;
+		}
+
+		rsx_log.error("Allocation failed: error=%d, size=0x%llx, aligned_size=0x%llx, alignment=0x%llx, pool=%d, recover_vmem_on_fail=%d",
+			static_cast<s32>(error_code), request.size, rsx::align2(request.size, request.alignment), request.alignment,
+			static_cast<s32>(request.pool), static_cast<u32>(request.recover_vmem_on_fail));
+
+		if (request.memory_type)
+		{
+			for (const auto& type : *request.memory_type)
+			{
+				rsx_log.error("Allocation failed: tried memory type %u", type);
+			}
+		}
+
+		static constexpr std::array<std::pair<vmm_allocation_pool, const char*>, 6> pools
+		{{
+			{ VMM_ALLOCATION_POOL_SYSTEM, "system" },
+			{ VMM_ALLOCATION_POOL_SURFACE_CACHE, "surface cache" },
+			{ VMM_ALLOCATION_POOL_TEXTURE_CACHE, "texture cache" },
+			{ VMM_ALLOCATION_POOL_SWAPCHAIN, "swapchain" },
+			{ VMM_ALLOCATION_POOL_SCRATCH, "scratch" },
+			{ VMM_ALLOCATION_POOL_UNDEFINED, "undefined" },
+		}};
+
+		for (const auto& [pool, name] : pools)
+		{
+			rsx_log.error("Allocation failed: pool '%s' usage %llu MB", name, vmm_get_application_pool_usage(pool) / 0x100000);
+		}
+
+		allocator->log_heap_budgets();
+
+		utils::stack_trace::print_to_log logger(rsx_log);
+		utils::print_trace(logger, 48);
+	}
+
 	memory_type_info::memory_type_info(u32 index, u64 size)
 	{
 		push(index, size);
@@ -271,6 +315,8 @@ namespace vk
 			}
 		}
 
+		log_allocation_failure(this, request, error_code);
+
 		if (!request.throw_on_fail)
 		{
 			return VK_NULL_HANDLE;
@@ -357,6 +403,25 @@ namespace vk
 		m_allocation_flags = VMA_ALLOCATION_CREATE_STRATEGY_MIN_TIME_BIT;
 	}
 
+	void mem_allocator_vma::log_heap_budgets()
+	{
+		const VkPhysicalDeviceMemoryProperties* memory_properties = nullptr;
+		vmaGetMemoryProperties(m_allocator, &memory_properties);
+
+		std::array<VmaBudget, VK_MAX_MEMORY_HEAPS> budgets{};
+		vmaGetHeapBudgets(m_allocator, budgets.data());
+
+		for (u32 i = 0; i < memory_properties->memoryHeapCount; ++i)
+		{
+			const auto& budget = budgets[i];
+			rsx_log.notice("VMA heap %u: size=%llu MB, flags=0x%x, usage=%llu MB, budget=%llu MB, blocks=%u (%llu MB), allocations=%u (%llu MB)",
+				i, memory_properties->memoryHeaps[i].size / 0x100000, memory_properties->memoryHeaps[i].flags,
+				budget.usage / 0x100000, budget.budget / 0x100000,
+				budget.statistics.blockCount, budget.statistics.blockBytes / 0x100000,
+				budget.statistics.allocationCount, budget.statistics.allocationBytes / 0x100000);
+		}
+	}
+
 	mem_allocator_vk::mem_handle_t mem_allocator_vk::alloc(const memory_allocation_request& request)
 	{
 		VkResult error_code = VK_ERROR_UNKNOWN;
@@ -406,6 +471,8 @@ namespace vk
 				}
 			}
 		}
+
+		log_allocation_failure(this, request, error_code);
 
 		if (!request.throw_on_fail)
 		{

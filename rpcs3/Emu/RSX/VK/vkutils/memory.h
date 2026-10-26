@@ -97,6 +97,9 @@ namespace vk
 		virtual void set_safest_allocation_flags() {}
 		virtual void set_fastest_allocation_flags() {}
 
+		// Diagnostics: dump per-heap usage and budget to the log
+		virtual void log_heap_budgets() {}
+
 	protected:
 		VkDevice m_device;
 		VkFlags  m_allocation_flags;
@@ -126,6 +129,8 @@ namespace vk
 
 		void set_safest_allocation_flags() override;
 		void set_fastest_allocation_flags() override;
+
+		void log_heap_budgets() override;
 
 	private:
 		VmaAllocator m_allocator;

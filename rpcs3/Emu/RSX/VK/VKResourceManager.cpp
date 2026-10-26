@@ -2,6 +2,7 @@
 #include "VKResourceManager.h"
 #include "VKGSRender.h"
 #include "VKCommandStream.h"
+#include "Emu/Cell/timers.hpp"
 
 namespace vk
 {
@@ -275,6 +276,20 @@ namespace vk
 
 	void vmm_check_memory_usage()
 	{
+		// Diagnostics: periodic snapshot of VRAM usage, called from the present path only
+		static u64 s_last_usage_report = 0;
+		if (const u64 now = get_system_time(); now - s_last_usage_report >= 10'000'000)
+		{
+			s_last_usage_report = now;
+			rsx_log.notice("VRAM usage: load=%.1f%%, surface cache=%llu MB, texture cache=%llu MB, scratch=%llu MB, system=%llu MB",
+				get_current_mem_allocator()->get_memory_usage(),
+				vmm_get_application_pool_usage(VMM_ALLOCATION_POOL_SURFACE_CACHE) / 0x100000,
+				vmm_get_application_pool_usage(VMM_ALLOCATION_POOL_TEXTURE_CACHE) / 0x100000,
+				vmm_get_application_pool_usage(VMM_ALLOCATION_POOL_SCRATCH) / 0x100000,
+				vmm_get_application_pool_usage(VMM_ALLOCATION_POOL_SYSTEM) / 0x100000);
+			get_current_mem_allocator()->log_heap_budgets();
+		}
+
 		if (const auto load_severity = vmm_determine_memory_load_severity();
 			load_severity >= rsx::problem_severity::moderate)
 		{

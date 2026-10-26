@@ -132,6 +132,13 @@ namespace vk
 		VkMemoryRequirements memory_req;
 		vkGetImageMemoryRequirements(m_device, value, &memory_req);
 
+		if (!memory_req.size)
+		{
+			rsx_log.error("Image has a zero-sized memory requirement: type=%d, format=%d, extent=%ux%ux%u, mips=%u, layers=%u, samples=%d, flags=0x%x, usage=0x%x, pool=%d",
+				static_cast<s32>(info.imageType), static_cast<s32>(info.format), info.extent.width, info.extent.height, info.extent.depth,
+				info.mipLevels, info.arrayLayers, static_cast<s32>(info.samples), info.flags, info.usage, static_cast<s32>(allocation_pool));
+		}
+
 		const auto allocation_type_info = memory_type.get(dev, access_flags, memory_req.memoryTypeBits);
 		if (!allocation_type_info)
 		{

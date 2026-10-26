@@ -1178,6 +1178,16 @@ namespace vk
 		rsx_log.notice("Detected %llu MB of host coherent memory", result.host_visible_total_bytes / (0x100000));
 		rsx_log.notice("Detected %llu MB of BAR memory", result.device_bar_total_bytes / (0x100000));
 
+		for (u32 i = 0; i < memory_properties.memoryHeapCount; ++i)
+		{
+			rsx_log.notice("Memory heap %u: size=%llu MB, flags=0x%x", i, memory_properties.memoryHeaps[i].size / 0x100000, memory_properties.memoryHeaps[i].flags);
+		}
+
+		for (u32 i = 0; i < memory_properties.memoryTypeCount; ++i)
+		{
+			rsx_log.notice("Memory type %u: heap=%u, flags=0x%x", i, memory_properties.memoryTypes[i].heapIndex, memory_properties.memoryTypes[i].propertyFlags);
+		}
+
 		return result;
 	}
 
