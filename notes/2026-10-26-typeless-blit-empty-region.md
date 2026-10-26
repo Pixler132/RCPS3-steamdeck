@@ -1,6 +1,6 @@
 # Decision: skip typeless blits whose region covers no texel (Vulkan)
 
-**Date:** 2026-10-26 · **Status:** applied, under test · **Revert:** `git revert` the commit that added this file (fix + note travel together)
+**Date:** 2026-10-26 · **Status:** applied, verified in-game (see Verification) · **Revert:** `git revert` the commit that added this file (fix + note travel together)
 
 ## Problem
 
@@ -68,3 +68,14 @@ this happens in-game; consider an upstream report.
 
 Play through many area transitions with the locked config. Grep the log for `Typeless blit skipped` and
 confirm no `^·F` lines.
+
+## Verification (2026-10-26, runs/2026-10-26-multi-boot)
+
+The crash is tied to one place: an in-area transition inside D_21_1 (PhysX group rebuilt without a map load),
+reached via Field_18 → Field_11 → D_21_1. Runs 1 and 3 hit the RSX fatal 0.652 s after that transition.
+With the fix, the same transition logged the warning 0.604 s after it and the game continued. A second, similar
+transition 0.578 s after a PhysX rebuild also fired the warning. The game ran on for more than 2 minutes, with no `^·F` lines.
+
+Logged values (both firings): `src=1x1 -> 0x1, dst=1x1, hint=0.5, format=0x2c->0x61`
+(B8G8R8A8_UNORM, 4 bpp, into R16G16B16A16_SFLOAT, 8 bpp). The source was 1 texel wide before scaling, so truncation
+produced the 0, as predicted. Both sides are 1x1, which suggests a 1x1 post-process target (unverified).
