@@ -1,0 +1,8 @@
+{
+    "ICD": {
+        "api_version": "1.4.350",
+        "library_arch": "64",
+        "library_path": "/run/host/usr/lib/libvulkan_radeon.so"
+    },
+    "file_format_version": "1.0.1"
+}
