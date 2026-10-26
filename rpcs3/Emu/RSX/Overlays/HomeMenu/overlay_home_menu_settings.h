@@ -4,6 +4,7 @@
 #include "../overlay_tabs.h"
 
 #include "Emu/emu_callbacks.h"
+#include "Emu/steamdeck_profile.h"
 #include "Utilities/Config.h"
 
 namespace rsx
@@ -33,6 +34,11 @@ namespace rsx
 			void add_checkbox(cfg::_bool* setting, localized_string_id loc_id)
 			{
 				ensure(setting && setting->get_is_dynamic());
+
+				if (steamdeck_profile::is_pinned(*setting))
+				{
+					return;
+				}
 
 				const std::string localized_text = get_localized_string(loc_id);
 				std::unique_ptr<overlay_element> elem = std::make_unique<home_menu_checkbox>(setting, localized_text);
@@ -74,6 +80,11 @@ namespace rsx
 			void add_dropdown(cfg::_enum<T>* setting, localized_string_id loc_id)
 			{
 				ensure(setting && setting->get_is_dynamic());
+
+				if (steamdeck_profile::is_pinned(*setting))
+				{
+					return;
+				}
 
 				const std::string localized_text = get_localized_string(loc_id);
 				std::unique_ptr<overlay_element> elem = std::make_unique<home_menu_dropdown<T>>(setting, localized_text);
@@ -174,6 +185,11 @@ namespace rsx
 			{
 				ensure(setting && setting->get_is_dynamic());
 
+				if (steamdeck_profile::is_pinned(*setting))
+				{
+					return;
+				}
+
 				const std::string localized_text = get_localized_string(loc_id);
 				std::unique_ptr<overlay_element> elem = std::make_unique<home_menu_signed_slider<Min, Max>>(setting, localized_text, suffix, special_labels, minimum, maximum);
 				elem->set_size(this->w, menu_entry_height);
@@ -218,6 +234,11 @@ namespace rsx
 			void add_unsigned_slider(cfg::uint<Min, Max>* setting, localized_string_id loc_id, const std::string& suffix, u64 step_size, std::map<u64, std::string> special_labels = {}, const std::set<u64>& exceptions = {}, u64 minimum = Min, u64 maximum = Max)
 			{
 				ensure(setting && setting->get_is_dynamic());
+
+				if (steamdeck_profile::is_pinned(*setting))
+				{
+					return;
+				}
 				ensure(!exceptions.contains(minimum) && !exceptions.contains(maximum));
 
 				const std::string localized_text = get_localized_string(loc_id);
@@ -272,6 +293,11 @@ namespace rsx
 			void add_float_slider(cfg::_float<Min, Max>* setting, localized_string_id loc_id, const std::string& suffix, f32 step_size, std::map<f64, std::string> special_labels = {}, s32 minimum = Min, s32 maximum = Max)
 			{
 				ensure(setting && setting->get_is_dynamic());
+
+				if (steamdeck_profile::is_pinned(*setting))
+				{
+					return;
+				}
 
 				const std::string localized_text = get_localized_string(loc_id);
 				std::unique_ptr<overlay_element> elem = std::make_unique<home_menu_float_slider<Min, Max>>(setting, localized_text, suffix, special_labels, minimum, maximum);

@@ -12,6 +12,7 @@
 #include "Emu/IPC_config.h"
 #include "Emu/savestate_utils.hpp"
 #include "Emu/cache_utils.hpp"
+#include "Emu/steamdeck_profile.h"
 
 #include "Emu/Cell/ErrorCodes.h"
 #include "Emu/Cell/PPUThread.h"
@@ -293,6 +294,9 @@ void init_fxo_for_exec(utils::serial* ar, bool full = false)
 // Some settings are not allowed with certain conditions
 static void fixup_settings(const psf::registry* _psf)
 {
+	// Pin the Steam Deck settings first, so the safety fixups below still have the last word
+	steamdeck_profile::apply();
+
 	// Disable some incompatible settings in headless mode
 	if (Emu.IsHeadless())
 	{

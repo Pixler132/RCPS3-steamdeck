@@ -9,6 +9,7 @@
 #include "Emu/System.h"
 #include "Emu/system_config.h"
 #include "Emu/system_utils.hpp"
+#include "Emu/steamdeck_profile.h"
 #include "Emu/Cell/Modules/cellSysutil.h"
 #include "Emu/Io/Keyboard.h"
 
@@ -16,6 +17,7 @@
 #include "util/cctype.hpp"
 #include "Utilities/File.h"
 #include "Utilities/Config.h"
+#include "Utilities/StrUtil.h"
 
 LOG_CHANNEL(cfg_log, "CFG");
 
@@ -88,6 +90,24 @@ namespace
 				// This logic may be overwritten by custom demands of every specific cfg:: node.
 				left = node;
 			}
+		}
+	}
+
+	// Settings pinned by the Steam Deck profile are shown with their pinned value but cannot be edited
+	static void lock_if_pinned(QWidget* widget, emu_settings_type type)
+	{
+		std::string path;
+
+		for (const std::string& name : ::at32(settings_location, type))
+		{
+			if (!path.empty()) path += '/';
+			path += name;
+		}
+
+		if (steamdeck_profile::is_pinned(path))
+		{
+			widget->setEnabled(false);
+			widget->setToolTip(QObject::tr("Pinned by the Steam Deck profile of this build."));
 		}
 	}
 }
@@ -196,6 +216,13 @@ void emu_settings::LoadSettings(const std::string& title_id, bool create_config_
 						.arg(QString::fromStdString(custom_config_path)).arg(QString::fromStdString(fmt::format("%s", fs::g_tls_error))), QMessageBox::Ok);
 			}
 		}
+	}
+
+	// Show and save the values the Steam Deck profile runs with, whatever the config files say
+	for (const auto& [path, value] : steamdeck_profile::pinned_settings())
+	{
+		const std::vector<std::string> names = fmt::split(path, {"/"});
+		cfg_adapter::get_node(m_current_settings, cfg_location(names.begin(), names.end())) = std::string(value);
 	}
 }
 
@@ -314,6 +341,8 @@ void emu_settings::EnhanceComboBox(QComboBox* combobox, emu_settings_type type, 
 		cfg_log.fatal("EnhanceComboBox '%s' was used with an invalid object", cfg_adapter::get_setting_name(type));
 		return;
 	}
+
+	lock_if_pinned(combobox, type);
 
 	if (is_ranged)
 	{
@@ -444,6 +473,8 @@ void emu_settings::EnhanceCheckBox(QCheckBox* checkbox, emu_settings_type type)
 		return;
 	}
 
+	lock_if_pinned(checkbox, type);
+
 	std::string def = GetSettingDefault(type);
 	std::transform(def.begin(), def.end(), def.begin(), utils::tolower<char>);
 
@@ -486,6 +517,8 @@ void emu_settings::EnhanceDateTimeEdit(QDateTimeEdit* date_time_edit, emu_settin
 		cfg_log.fatal("EnhanceDateTimeEdit '%s' was used with an invalid object", cfg_adapter::get_setting_name(type));
 		return;
 	}
+
+	lock_if_pinned(date_time_edit, type);
 
 	date_time_edit->setDisplayFormat(format);
 	date_time_edit->setCalendarPopup(use_calendar);
@@ -620,6 +653,8 @@ void emu_settings::EnhanceSlider(QSlider* slider, emu_settings_type type)
 		return;
 	}
 
+	lock_if_pinned(slider, type);
+
 	const QStringList range = GetQStringSettingOptions(type);
 	ensure(!range.empty());
 
@@ -666,6 +701,8 @@ void emu_settings::EnhanceSpinBox(QSpinBox* spinbox, emu_settings_type type, con
 		cfg_log.fatal("EnhanceSpinBox '%s' was used with an invalid object", cfg_adapter::get_setting_name(type));
 		return;
 	}
+
+	lock_if_pinned(spinbox, type);
 
 	const QStringList range = GetQStringSettingOptions(type);
 	ensure(!range.empty());
@@ -715,6 +752,8 @@ void emu_settings::EnhanceDoubleSpinBox(QDoubleSpinBox* spinbox, emu_settings_ty
 		cfg_log.fatal("EnhanceDoubleSpinBox '%s' was used with an invalid object", cfg_adapter::get_setting_name(type));
 		return;
 	}
+
+	lock_if_pinned(spinbox, type);
 
 	const std::vector<std::string> range = GetSettingOptions(type);
 	ensure(!range.empty());
@@ -771,6 +810,8 @@ void emu_settings::EnhanceLineEdit(QLineEdit* edit, emu_settings_type type)
 		return;
 	}
 
+	lock_if_pinned(edit, type);
+
 	const std::string set_text = GetSetting(type);
 	edit->setText(QString::fromStdString(set_text));
 
@@ -796,6 +837,11 @@ void emu_settings::EnhanceRadioButton(QButtonGroup* button_group, emu_settings_t
 	{
 		cfg_log.fatal("EnhanceRadioButton '%s' was used with an invalid object", cfg_adapter::get_setting_name(type));
 		return;
+	}
+
+	for (QAbstractButton* button : button_group->buttons())
+	{
+		lock_if_pinned(button, type);
 	}
 
 	const QString selected    = QString::fromStdString(GetSetting(type));

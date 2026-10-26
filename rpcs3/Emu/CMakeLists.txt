@@ -6,6 +6,7 @@ add_library(rpcs3_emu STATIC
     savestate_utils.cpp
     scoped_progress_dialog.cpp
     stb_image.cpp
+    steamdeck_profile.cpp
     System.cpp
     system_config.cpp
     system_config_types.cpp
@@ -47,6 +48,11 @@ endif()
 
 if(HAS_MEMORY_BREAKPOINTS)
     target_compile_definitions(rpcs3_emu PRIVATE RPCS3_HAS_MEMORY_BREAKPOINTS)
+endif()
+
+if(USE_STEAMDECK_PROFILE)
+    target_compile_definitions(rpcs3_emu PRIVATE RPCS3_STEAMDECK_PROFILE
+        RPCS3_HOST_RADV_ICD="${CMAKE_SOURCE_DIR}/tools/host-radv-icd.json")
 endif()
 
 # For stdafx.h

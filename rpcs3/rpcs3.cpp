@@ -71,6 +71,7 @@ DYNAMIC_IMPORT("ntdll.dll", NtSetTimerResolution, NTSTATUS(ULONG DesiredResoluti
 #include "Emu/System.h"
 #include "Emu/system_config.h"
 #include "Emu/system_utils.hpp"
+#include "Emu/steamdeck_profile.h"
 #include "Emu/savestate_utils.hpp"
 #include "Emu/RSX/Overlays/overlay_message.h"
 
@@ -792,6 +793,9 @@ int run_rpcs3(int argc, char** argv)
 	{
 		sys_log.error("Low Power Mode is enabled, performance may be reduced.");
 	}
+
+	// Before Qt or the renderer can load a Vulkan driver
+	steamdeck_profile::select_vulkan_driver();
 
 	std::lock_guard qt_init(s_qt_init);
 
