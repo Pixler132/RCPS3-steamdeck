@@ -25,6 +25,10 @@ inheriting a previous agent's theory.
   `flatpak-spawn --host distrobox enter rpcs3-build -- <command>`
 - Git: `origin` is the owner's repo Pixler132/RCPS3-steamdeck; `upstream` is RPCS3/rpcs3 (shallow clone). `main` sits on top of upstream `master`. `CLAUDE.md` and `.claude/skills/` are committed; `Game/`, game/firmware/key files and RPCS3 user data are ignored via `.gitignore`.
 - Game image: `~/Emulation/roms/ps3/3D Dot Game Heroes (USA).iso` (identical copy in `Game/`, with `.dkey` and `PS3UPDAT.PUP` firmware)
+- Game update 01.01 installed 2026-10-26 from `~/Downloads/UP0005-BLUS30490_00-M3DDGHPATCH00001-A0101-V0100-PE.pkg`
+  into `/home/deck/Emulation/storage/rpcs3/dev_hdd0/game/BLUS30490/` (`vfs.yml` maps `/dev_hdd0/` there, not under `~/.config/rpcs3/`).
+  Runs before this date are disc version 01.00 (PPU hash `9696f609...`); later runs are 01.01. The installer warned
+  "Missing 11233 bytes from PKG total files size" and then reported success. Install log: `runs/2026-10-26-update-0101-install/`.
 - RPCS3 config: `~/.config/rpcs3/` (shared between the AppImage and our build). Per-game config would go in `~/.config/rpcs3/custom_configs/config_BLUS30490.yml` (none exists yet; `custom_configs/` is empty as of 2026-10-25)
 - Logs: `~/.cache/rpcs3/RPCS3.log` (current run), `RPCS3.log.gz` (previous run)
 - Baseline AppImage: `~/.config/rpcs3/rpcs3.AppImage`, v0.0.43-20290-eda7621f
