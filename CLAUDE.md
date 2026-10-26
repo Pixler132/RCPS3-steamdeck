@@ -19,13 +19,13 @@ inheriting a previous agent's theory.
 
 ## Environment
 
-- Device: Steam Deck (SteamOS, AMD Van Gogh APU, 4C/8T, ~14.5 GiB RAM). Root filesystem is read-only; do **not** install packages on the host.
+- Device: Steam Deck (SteamOS, AMD Van Gogh APU, 4C/8T, ~14.5 GiB RAM). Root filesystem is read-only by default (`sudo steamos-readonly disable` to unlock); the owner permits host package installs for this project. SteamOS updates wipe host installs.
 - VS Code runs as a Flatpak, so Claude's shell is inside the Flatpak sandbox. Run host commands with `flatpak-spawn --host ...`.
 - All building happens in a distrobox container named `rpcs3-build` (Arch Linux, passwordless sudo). From the sandbox:
   `flatpak-spawn --host distrobox enter rpcs3-build -- <command>`
 - Git: `origin` is the owner's repo Pixler132/RCPS3-steamdeck; `upstream` is RPCS3/rpcs3 (shallow clone). `main` sits on top of upstream `master`. `CLAUDE.md` and `.claude/skills/` are committed; `Game/`, game/firmware/key files and RPCS3 user data are ignored via `.gitignore`.
 - Game image: `~/Emulation/roms/ps3/3D Dot Game Heroes (USA).iso` (identical copy in `Game/`, with `.dkey` and `PS3UPDAT.PUP` firmware)
-- RPCS3 config: `~/.config/rpcs3/` (shared between the AppImage and our build). Per-game config: `~/.config/rpcs3/custom_configs/config_BLUS30490.yml`
+- RPCS3 config: `~/.config/rpcs3/` (shared between the AppImage and our build). Per-game config would go in `~/.config/rpcs3/custom_configs/config_BLUS30490.yml` (none exists yet; `custom_configs/` is empty as of 2026-10-25)
 - Logs: `~/.cache/rpcs3/RPCS3.log` (current run), `RPCS3.log.gz` (previous run)
 - Baseline AppImage: `~/.config/rpcs3/rpcs3.AppImage`, v0.0.43-20290-eda7621f
 

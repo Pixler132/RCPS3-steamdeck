@@ -180,3 +180,6 @@ perf.data*
 core
 core.[0-9]*
 vgcore.*
+
+# Per-run captures (logs embed local paths; may contain game data)
+/runs/
