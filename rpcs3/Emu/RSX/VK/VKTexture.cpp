@@ -1537,6 +1537,16 @@ namespace vk
 				src_area.x2 = static_cast<int>(src_area.width() * xfer_info.src_scaling_hint);
 				src_area.x1 = 0;
 
+				// A region narrower than one texel of the typeless format contains no texel centre. Skip it before
+				// allocating, otherwise a zero-sized scratch image is requested and the allocation fails fatally.
+				if (src_area.width() <= 0 || src_area.height() <= 0)
+				{
+					rsx_log.warning("Typeless blit skipped: source region covers no texel (src=%dx%d -> %dx%d, dst=%dx%d, hint=%f, format=0x%x->0x%x)",
+						old_src_area.width(), old_src_area.height(), src_area.width(), src_area.height(),
+						dst_area.width(), dst_area.height(), xfer_info.src_scaling_hint, static_cast<u32>(src->format()), static_cast<u32>(format));
+					return;
+				}
+
 				// Transfer bits from src to typeless src
 				real_src = vk::get_typeless_helper(format, rsx::classify_format(xfer_info.src_gcm_format), src_area.width(), src_area.height());
 				real_src->change_layout(cmd, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
@@ -1560,6 +1570,14 @@ namespace vk
 				dst_area.y1 = 0;
 				dst_area.x2 = static_cast<int>(dst_area.width() * xfer_info.dst_scaling_hint);
 				dst_area.x1 = 0;
+
+				if (dst_area.width() <= 0 || dst_area.height() <= 0)
+				{
+					rsx_log.warning("Typeless blit skipped: destination region covers no texel (dst=%dx%d -> %dx%d, hint=%f, format=0x%x->0x%x)",
+						old_dst_area.width(), old_dst_area.height(), dst_area.width(), dst_area.height(),
+						xfer_info.dst_scaling_hint, static_cast<u32>(dst->format()), static_cast<u32>(format));
+					return;
+				}
 
 				// Account for possibility where SRC is typeless and DST is typeless and both map to the same format
 				auto required_height = dst_area.height();
