@@ -129,3 +129,54 @@ CMakeUserPresets.json
 
 # claude
 CLAUDE.md
+
+# RCPS3-steamdeck
+!CLAUDE.md
+.claude/settings.local.json
+
+# Never commit game data, keys, licenses or Sony firmware (copyrighted / console-specific)
+/Game/
+*.iso
+*.ISO
+*.ird
+*.dkey
+*.key
+*.pkg
+*.rap
+*.edat
+*.sdat
+*.self
+*.sprx
+*.p3t
+*.PUP
+*.pup
+act.dat
+PS3_GAME/
+PS3_UPDATE/
+PS3_DISC.SFB
+!/bin/test/*.self
+
+# RPCS3 virtual filesystem and per-user data (saves, trophies, licenses, caches)
+dev_hdd0/
+dev_hdd1/
+dev_flash/
+dev_flash2/
+dev_flash3/
+dev_usb*/
+dev_bdvd/
+savestates/
+captures/
+/cache/
+/config.yml
+/vfs.yml
+/games.yml
+custom_configs/
+input_configs/
+
+# Profiling / debugging output (logs embed local paths and usernames)
+*.log.gz
+*.rrc
+perf.data*
+core
+core.[0-9]*
+vgcore.*
