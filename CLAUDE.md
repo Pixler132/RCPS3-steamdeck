@@ -33,7 +33,8 @@ inheriting a previous agent's theory.
 - Our build and the stock AppImage are isolated since 2026-10-27. Our build runs only through
   `~/.local/opt/rpcs3-steamdeck/bin/rpcs3-steamdeck.sh` (installed copy of `tools/rpcs3-host.sh`), which sets
   `XDG_CONFIG_HOME`/`XDG_CACHE_HOME` to `~/.local/share/rpcs3-steamdeck/{config,cache}`:
-  - config: `~/.local/share/rpcs3-steamdeck/config/rpcs3/` (per-game: `custom_configs/config_BLUS30490.yml`; pad: Evdev "Wireless Controller")
+  - config: `~/.local/share/rpcs3-steamdeck/config/rpcs3/` (per-game: `custom_configs/config_BLUS30490.yml`; Player 1 pad: Evdev "Microsoft X-Box 360 pad 0",
+    Steam Input's virtual gamepad 28de:11ff, mapping copied from EmuDeck's template 2026-10-27; previous DS4 setup in `Default.yml.bak-ds4-evdev-2026-10-27`)
   - dev_hdd0 (saves, trophies, game updates): `~/.local/share/rpcs3-steamdeck/dev_hdd0/`, set in that config's `vfs.yml`
   - logs: `~/.local/share/rpcs3-steamdeck/cache/rpcs3/RPCS3.log` (current run), `RPCS3.log.gz` (previous run)
   - `RPCS3_BIN=build/bin/rpcs3` runs a fresh build against the same data.
